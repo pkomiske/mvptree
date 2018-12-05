@@ -1,0 +1,1 @@
+cpdef double emd_c(double[::1] a, double[::1] b, double[:,::1] M, int max_iter=?) nogil except -1

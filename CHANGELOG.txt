@@ -1,0 +1,6 @@
+Version 0.0.0 (Dec 4, 2018)
+    - Initialize the package and first upload to PyPI test.
+
+Version 0.1.0 (Dec 4, 2018)
+    - Verify that install via pip works from test server.
+
