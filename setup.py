@@ -13,8 +13,6 @@ with open('mvptree/__init__.py', 'r') as f:
     __version__ = re.search(r'__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
                             f.read()).group(1)
 
-print(__version__)
-
 # determine if we use cython or not
 cythonize, ext, extpp = False, '.c', '.cpp'
 if len(sys.argv) >= 2 and sys.argv[1] == 'build_ext':
@@ -46,8 +44,9 @@ if cythonize:
     extensions = cythonize(extensions, 
                           compiler_directives={'language_level': 3, 
                                                'boundscheck': False, 
-                                               'wraparound': False},
-                          annotate=False)
+                                               'wraparound': False,
+                                               'cdivision': True},
+                          annotate=True)
 
 # other options specified in setup.cfg
 setup(

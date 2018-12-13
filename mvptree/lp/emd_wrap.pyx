@@ -9,19 +9,22 @@ Cython linker with C solver
 #
 # Modified by Patrick Komiske <pkomiske@mit.edu>
 
+from __future__ import absolute_import
+
 import numpy as np
 import warnings
 
 cimport numpy as np
 cimport cython
 from libc.stdlib cimport calloc, free
+from mvptree.utils.typedefs cimport D_t, I_t
 
-cdef extern from "EMD.h":
-    int EMD_wrap(int n1,int n2, double* X, double* Y,double* D, double* G, double* alpha, double* beta, double* cost, int maxIter) nogil
-    cdef enum ProblemType: 
+cdef extern from "EMD.h" nogil:
+    I_t EMD_wrap(I_t n1, I_t n2, D_t* X, D_t* Y, D_t* D, D_t* G, D_t* alpha, D_t* beta, D_t* cost, I_t maxIter)
+    cdef enum ProblemType:
         INFEASIBLE, OPTIMAL, UNBOUNDED, MAX_ITER_REACHED
 
-cdef check_result(int result_code):
+cdef check_result(I_t result_code):
     if result_code == OPTIMAL:
         return None
 
@@ -34,7 +37,7 @@ cdef check_result(int result_code):
 
     warnings.warn(message)
 
-cpdef double emd_c(double[::1] a, double[::1] b, double[:,::1] M, int max_iter=100000) nogil except -1:
+cpdef D_t emd_c(D_t[::1] a, D_t[::1] b, D_t[:,::1] M, I_t max_iter=100000) nogil except -1:
     """
         Solves the Earth Movers distance problem and returns the optimal transport matrix
 
@@ -61,7 +64,7 @@ cpdef double emd_c(double[::1] a, double[::1] b, double[:,::1] M, int max_iter=1
         target histogram
     M : (ns,nt) ndarray, float64
         loss matrix
-    max_iter : int
+    max_iter : I_t
         The maximum number of iterations before stopping the optimization
         algorithm if it has not converged.
 
@@ -73,16 +76,27 @@ cpdef double emd_c(double[::1] a, double[::1] b, double[:,::1] M, int max_iter=1
 
     """
 
-    cdef int n1= M.shape[0]
-    cdef int n2= M.shape[1]
-    cdef double cost = 0
+    cdef I_t n1= M.shape[0]
+    cdef I_t n2= M.shape[1]
+    cdef D_t cost = 0
 
-    cdef double* G = <double*> calloc(n1*n2, sizeof(double))
-    cdef double* alpha = <double*> calloc(n1, sizeof(double))
-    cdef double* beta = <double*> calloc(n2, sizeof(double))
+    cdef D_t* G = <D_t*> calloc(n1*n2, sizeof(D_t))
+    if G == NULL:
+        raise MemoryError()
+
+    cdef D_t* alpha = <D_t*> calloc(n1, sizeof(D_t))
+    if alpha == NULL:
+        free(G)
+        raise MemoryError()
+
+    cdef D_t* beta = <D_t*> calloc(n2, sizeof(D_t))
+    if beta == NULL:
+        free(G)
+        free(alpha)
+        raise MemoryError()
 
     # calling the function
-    cdef int result_code = EMD_wrap(n1, n2, &a[0], &b[0], &M[0,0], G, alpha, beta, &cost, max_iter)
+    cdef I_t result_code = EMD_wrap(n1, n2, &a[0], &b[0], &M[0,0], G, alpha, beta, &cost, max_iter)
 
     # free memory that we allocated
     free(G)

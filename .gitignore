@@ -5,3 +5,7 @@ clean
 *.c
 *.so
 emd_wrap.cpp
+mvptree.html
+build
+*.egg-info
+*.nb
