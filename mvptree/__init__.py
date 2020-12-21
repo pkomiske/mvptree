@@ -1,11 +1,8 @@
 from __future__ import absolute_import
 
-from . import lp
-from . import mvptree
+from . import core
+from .core import *
 
-from .lp import *
-from .mvptree import *
+__all__ = core.__all__
 
-__all__ = lp.__all__ + mvptree.__all__
-
-__version__ = '0.1.0'
+__version__ = '1.0.0'
